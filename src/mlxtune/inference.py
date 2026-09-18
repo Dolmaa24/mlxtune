@@ -1,0 +1,160 @@
+"""Chat with an adapter or fused model, and fuse adapters into standalone models."""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Any
+
+from rich.console import Console
+
+console = Console()
+
+
+def is_adapter_dir(path: str | Path) -> bool:
+    return (Path(path) / "adapters.safetensors").exists()
+
+
+def base_model_of(adapter_dir: str | Path) -> str:
+    cfg = json.loads((Path(adapter_dir) / "adapter_config.json").read_text())
+    model = cfg.get("model")
+    if not model:
+        raise RuntimeError(f"{adapter_dir}/adapter_config.json has no 'model' entry")
+    return model
+
+
+_TOKENIZER_FILES = ["*.json", "*.txt", "*.jinja", "tokenizer.model", "*.tiktoken"]
+_MODEL_FILES = [*_TOKENIZER_FILES, "model*.safetensors", "*.py", "*.jsonl", "tiktoken.model"]
+
+
+def resolve_model_path(model: str, weights: bool = True) -> Path:
+    """Local directory for a model id or path, downloading (a subset of) the repo if needed."""
+    p = Path(model).expanduser()
+    if p.exists():
+        return p
+    from huggingface_hub import snapshot_download
+
+    return Path(
+        snapshot_download(model, allow_patterns=_MODEL_FILES if weights else _TOKENIZER_FILES)
+    )
+
+
+def load_tokenizer_only(model: str) -> Any:
+    """Fetch just the tokenizer files for a model id / path (no weights)."""
+    from mlx_lm.utils import load_tokenizer
+
+    return load_tokenizer(
+        resolve_model_path(model, weights=False), tokenizer_config_extra={"trust_remote_code": True}
+    )
+
+
+def load_for_inference(path: str, base: str | None = None) -> tuple[Any, Any]:
+    from mlx_lm.utils import load
+
+    if is_adapter_dir(path):
+        base = base or base_model_of(path)
+        return load(base, adapter_path=path, tokenizer_config={"trust_remote_code": True})
+    return load(path, tokenizer_config={"trust_remote_code": True})
+
+
+def stream_reply(
+    model: Any,
+    tokenizer: Any,
+    messages: list[dict[str, str]],
+    max_tokens: int = 512,
+    temperature: float = 0.7,
+    top_p: float = 0.9,
+) -> Iterator[str]:
+    from mlx_lm.generate import stream_generate
+    from mlx_lm.sample_utils import make_sampler
+
+    prompt = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
+    sampler = make_sampler(temp=temperature, top_p=top_p)
+    for resp in stream_generate(model, tokenizer, prompt, max_tokens=max_tokens, sampler=sampler):
+        yield resp.text
+
+
+def chat_loop(path: str, system: str | None, max_tokens: int, temperature: float) -> None:
+    console.print(f"[dim]loading {path} ...[/]")
+    model, tok = load_for_inference(path)
+    console.print("[green]ready[/]. /reset clears history, /quit exits.\n")
+    history: list[dict[str, str]] = [{"role": "system", "content": system}] if system else []
+    while True:
+        try:
+            user = console.input("[bold cyan]you>[/] ").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print()
+            break
+        if not user:
+            continue
+        if user in {"/quit", "/exit", "/q"}:
+            break
+        if user == "/reset":
+            history = history[:1] if system else []
+            continue
+        history.append({"role": "user", "content": user})
+        console.print("[bold magenta]bot>[/] ", end="")
+        reply = ""
+        for piece in stream_reply(
+            model, tok, history, max_tokens=max_tokens, temperature=temperature
+        ):
+            console.print(piece, end="", markup=False, highlight=False)
+            reply += piece
+        console.print()
+        history.append({"role": "assistant", "content": reply})
+
+
+# ---------------------------------------------------------------------------
+# fuse / export
+# ---------------------------------------------------------------------------
+
+
+def fuse(adapter_dir: str, output: str, dequantize: bool = False, gguf: str | None = None) -> Path:
+    """Merge the adapter into its base model with `mlx_lm fuse`. Returns the output dir."""
+    if not is_adapter_dir(adapter_dir):
+        raise RuntimeError(f"{adapter_dir} has no adapters.safetensors")
+    # Pass a local path, not a repo id: mlx_lm's save() asks huggingface_hub for a *complete*
+    # local snapshot of a repo id, which load() never creates (it downloads a subset of files),
+    # so recent huggingface_hub versions raise IncompleteSnapshotError.
+    base = str(resolve_model_path(base_model_of(adapter_dir)))
+    cmd = [
+        sys.executable, "-m", "mlx_lm", "fuse",
+        "--model", base, "--adapter-path", adapter_dir, "--save-path", output,
+    ]  # fmt: skip
+    if dequantize:
+        cmd.append("--dequantize")
+    if gguf:
+        cmd += ["--export-gguf", "--gguf-path", gguf]
+    console.print("[dim]$ " + " ".join(cmd) + "[/]")
+    subprocess.run(cmd, check=True)
+    console.print(f"[green]fused model saved to {output}[/]")
+    return Path(output)
+
+
+def write_ollama_modelfile(
+    gguf_path: str, output: str | None = None, system: str | None = None
+) -> Path:
+    gguf = Path(gguf_path)
+    out = Path(output) if output else gguf.parent / "Modelfile"
+    lines = [f"FROM {gguf.name}", ""]
+    if system:
+        lines += [f'SYSTEM """{system}"""', ""]
+    lines += [
+        "PARAMETER temperature 0.7",
+        "# Ollama reads the chat template from the GGUF for known model families.",
+        "# If replies look wrong, add a TEMPLATE block matching your base model.",
+    ]
+    out.write_text("\n".join(lines) + "\n")
+    name = gguf.stem.lower().replace("_", "-")
+    hint = f"ollama create {name} -f {out} && ollama run {name}"
+    if shutil.which("ollama"):
+        console.print(f"[green]Modelfile written[/]. Next:  {hint}")
+    else:
+        console.print(
+            f"[green]Modelfile written[/]. Install Ollama (https://ollama.com), then:  {hint}"
+        )
+    return out

@@ -1,0 +1,16 @@
+# 16 GB Macs: Qwen2.5-7B 4-bit. ~11 GB peak — close everything else first.
+model: mlx-community/Qwen2.5-7B-Instruct-4bit
+data:
+  path: data/train.jsonl
+  eval_fraction: 0.05
+lora:
+  rank: 8
+  num_layers: 16
+train:
+  output: adapters/qwen2.5-7b
+  epochs: 1
+  batch_size: 1
+  max_seq_length: 2048
+  grad_checkpoint: true
+  lr: 1.0e-5
+  grad_accumulation_steps: 4     # effective batch 4 without the memory cost

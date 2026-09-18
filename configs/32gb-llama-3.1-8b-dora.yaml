@@ -1,0 +1,15 @@
+# 32 GB Macs: Llama 3.1 8B with DoRA (usually a little better than LoRA at the same rank).
+model: mlx-community/Meta-Llama-3.1-8B-Instruct-4bit
+data:
+  path: data/train.jsonl
+lora:
+  type: dora
+  rank: 16
+  num_layers: 16
+train:
+  output: adapters/llama-3.1-8b-dora
+  epochs: 2
+  batch_size: 2
+  max_seq_length: 2048
+  lr: 1.0e-5
+  warmup_steps: 50

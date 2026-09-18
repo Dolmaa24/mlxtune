@@ -1,0 +1,15 @@
+# The 8 GB sweet spot: Qwen2.5-1.5B 4-bit. ~3 GB peak at these settings.
+model: mlx-community/Qwen2.5-1.5B-Instruct-4bit
+data:
+  path: data/train.jsonl
+  eval_fraction: 0.05
+lora:
+  rank: 8
+  num_layers: 8
+train:
+  output: adapters/qwen2.5-1.5b
+  epochs: 2
+  batch_size: 1
+  max_seq_length: 1024
+  grad_checkpoint: true
+  lr: 1.0e-5

@@ -1,0 +1,9 @@
+# Proves the pipeline on any Apple Silicon Mac in ~1 minute (0.5B model, tiny dataset).
+model: mlx-community/Qwen2.5-0.5B-Instruct-4bit
+data:
+  path: examples/pirate.jsonl
+train:
+  output: adapters/smoke
+  epochs: 3
+  lr: 1.0e-4
+  max_seq_length: 512

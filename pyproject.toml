@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mlxtune"
+version = "0.1.0"
+description = "Fine-tune LLMs on Apple Silicon with one command. Memory-aware defaults for 8 GB Macs and up, built on MLX."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{ name = "mlxtune contributors" }]
+keywords = ["mlx", "apple-silicon", "fine-tuning", "lora", "llm", "mac"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "mlx-lm>=0.20",
+    "typer>=0.12",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+# Load datasets straight from the Hugging Face Hub by id.
+hub = ["datasets>=2.20"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+mlxtune = "mlxtune.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/Dolmaa24/mlxtune"
+Issues = "https://github.com/Dolmaa24/mlxtune/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mlxtune"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: downloads a small model and trains a few steps on the local Mac",
+]

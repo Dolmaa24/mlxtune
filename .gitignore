@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+.ruff_cache/
+adapters/
+fused-model/
+*.safetensors
+*.gguf
+!examples/**
+.DS_Store
