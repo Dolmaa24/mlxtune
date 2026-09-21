@@ -125,6 +125,8 @@ MODELS: list[ModelRec] = [
 #   batch 1, 8 layers,  grad ckpt off -> 2.05 GB
 #   batch 2, 8 layers,  grad ckpt on  -> 3.38 GB
 #   batch 1, 24 layers, grad ckpt on  -> 2.50 GB
+# Cross-check on a bigger model, same machine: Qwen2.5-1.5B-4bit (0.87 GB), batch 1, 8 layers,
+# grad ckpt on, longest example 645 tokens -> 2.12 GB measured, 2.3 GB estimated.
 _REF_WEIGHTS_GB = 0.28
 _OVERHEAD_GB = 0.4  # runtime + optimizer state at LoRA sizes
 _LOGITS_GB_PER_KTOK_PER_KVOCAB = 1.2 / 152  # fp32 logits + their gradient

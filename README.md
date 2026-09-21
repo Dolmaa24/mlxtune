@@ -23,7 +23,7 @@ mlx-lm already ships a capable LoRA trainer. What it doesn't do is tell you *wha
 - **`mlxtune eval`** answers "did it help?" — the same validation loss mlx-lm trains against, tuned vs base, with sample generations side by side.
 - **Reproducible** — every run directory gets the resolved config, metrics with peak memory and throughput, and a README.
 
-Tested on an M2 with 8 GB: Qwen2.5-0.5B trains at ~12 it/s with 0.5 GB peak; Qwen2.5-1.5B fits comfortably; 3B fits.
+Measured on an M2 with 8 GB: Qwen2.5-0.5B-4bit trains at ~12 it/s with 0.5 GB peak on short examples; Qwen2.5-1.5B-4bit on 300 rows of `yahma/alpaca-cleaned` (up to 645 tokens) ran at 1.8 it/s with **2.1 GB peak**, val loss 1.31 → 1.08, held-out perplexity 3.70 → 2.93 vs base. 3B fits with the same settings.
 
 ## Install
 

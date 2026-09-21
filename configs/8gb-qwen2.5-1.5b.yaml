@@ -1,4 +1,5 @@
-# The 8 GB sweet spot: Qwen2.5-1.5B 4-bit. ~3 GB peak at these settings.
+# The 8 GB sweet spot: Qwen2.5-1.5B 4-bit. Measured on an M2 8 GB: 2.1 GB peak, 1.8 it/s on
+# 300 rows of yahma/alpaca-cleaned (examples up to 645 tokens); ~2.9 GB if examples fill 1024 tokens.
 model: mlx-community/Qwen2.5-1.5B-Instruct-4bit
 data:
   path: data/train.jsonl

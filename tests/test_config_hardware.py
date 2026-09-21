@@ -60,6 +60,9 @@ def test_estimator_tracks_measurements():
     for (bs, gc, layers), peak in measured:
         est = estimate_train_gb(0.28, bs, 1000, layers, gc, vocab_k=152)
         assert peak <= est <= peak * 1.25, (bs, gc, layers, est, peak)
+    # Qwen2.5-1.5B-4bit, batch 1, 8 layers, grad ckpt, longest example 645 tokens: 2.12 GB measured.
+    est = estimate_train_gb(0.87, 1, 645, 8, True, vocab_k=152)
+    assert 2.12 <= est <= 2.12 * 1.25, est
 
 
 def test_estimator_monotonic():
