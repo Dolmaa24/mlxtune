@@ -135,6 +135,61 @@ def fuse(adapter_dir: str, output: str, dequantize: bool = False, gguf: str | No
     return Path(output)
 
 
+def find_llama_cpp_converter(explicit: str | None = None) -> tuple[Path, str]:
+    """Locate llama.cpp's convert_hf_to_gguf.py and the interpreter to run it with.
+
+    Prefers a ``.venv`` inside the llama.cpp checkout if one exists (some people install the
+    converter's pinned requirements there); otherwise the current interpreter, which works as
+    long as ``sentencepiece`` and ``protobuf<5`` are installed (``pip install 'mlxtune[gguf]'``).
+    """
+    import os
+
+    candidates: list[Path] = []
+    if explicit:
+        e = Path(explicit).expanduser()
+        candidates += [e, e / "convert_hf_to_gguf.py"]
+    if os.environ.get("LLAMA_CPP_DIR"):
+        candidates.append(Path(os.environ["LLAMA_CPP_DIR"]) / "convert_hf_to_gguf.py")
+    candidates += [
+        Path.home() / "llama.cpp" / "convert_hf_to_gguf.py",
+        Path.cwd() / "llama.cpp" / "convert_hf_to_gguf.py",
+    ]
+    for c in candidates:
+        if c.is_file():
+            venv_py = c.parent / ".venv" / "bin" / "python"
+            return c, (str(venv_py) if venv_py.exists() else sys.executable)
+    raise FileNotFoundError(
+        "Could not find llama.cpp's convert_hf_to_gguf.py. Either:\n"
+        "  git clone --depth 1 https://github.com/ggml-org/llama.cpp ~/llama.cpp\n"
+        "  pip install 'mlxtune[gguf]'\n"
+        "or pass --llama-cpp /path/to/llama.cpp, or set LLAMA_CPP_DIR."
+    )
+
+
+def to_gguf(
+    model_dir: str, output: str | None = None, quant: str = "q8_0", llama_cpp: str | None = None
+) -> Path:
+    """Convert a *dequantized* fused model directory to GGUF with llama.cpp's converter.
+
+    Works for every architecture llama.cpp knows (Qwen, Phi, Gemma, Llama, ...). The directory
+    must come from ``mlxtune fuse --dequantize``: fused 4-bit weights are in MLX's own
+    quantised layout, which the converter cannot read.
+    """
+    converter, python = find_llama_cpp_converter(llama_cpp)
+    src = Path(model_dir)
+    cfg = json.loads((src / "config.json").read_text())
+    if "quantization" in cfg or "quantization_config" in cfg:
+        raise RuntimeError(
+            f"{src} holds MLX-quantised weights. Re-run:  mlxtune fuse <adapter> --output {src} --dequantize"
+        )
+    out = Path(output) if output else src / f"{src.name}-{quant}.gguf"
+    cmd = [python, str(converter), str(src), "--outfile", str(out), "--outtype", quant]
+    console.print("[dim]$ " + " ".join(cmd) + "[/]")
+    subprocess.run(cmd, check=True)
+    console.print(f"[green]GGUF written to {out}[/]")
+    return out
+
+
 def write_ollama_modelfile(
     gguf_path: str, output: str | None = None, system: str | None = None
 ) -> Path:

@@ -43,5 +43,19 @@ def test_train_chat_fuse(tmp_path):
     )
     assert isinstance(reply, str)
 
+    from mlxtune.eval import run_eval
+
+    r = run_eval(
+        str(out),
+        cfg.data,
+        max_seq_length=256,
+        compare_base=True,
+        n_samples=1,
+        max_examples=4,
+        max_tokens=4,
+    )
+    assert r.tuned_loss > 0 and r.base_loss is not None
+    assert len(r.samples) == 1 and "base" in r.samples[0] and "tuned" in r.samples[0]
+
     fused = fuse(str(out), str(tmp_path / "fused"))
     assert (fused / "config.json").exists() and not (fused / "adapters.safetensors").exists()

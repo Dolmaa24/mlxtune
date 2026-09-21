@@ -109,8 +109,7 @@ def models(
     table.add_column("params", justify="right", no_wrap=True)
     table.add_column("weights", justify="right", no_wrap=True)
     table.add_column("est. peak", justify="right", no_wrap=True)
-    table.add_column("fits", no_wrap=True)
-    table.add_column("note", style="dim")
+    table.add_column("fits", no_wrap=True, min_width=5)
     colour = {"yes": "green", "tight": "yellow", "no": "red"}
     for rec in MODELS:
         est = estimate_train_gb(
@@ -124,9 +123,12 @@ def models(
         verdict = fits(m, est)
         if verdict == "no" and not all_:
             continue
+        name = rec.repo.removeprefix("mlx-community/")
+        if rec.note:
+            name += f"\n[dim]{rec.note}[/]"
         table.add_row(
-            rec.repo.removeprefix("mlx-community/"), f"{rec.params_b:g}B", f"{rec.weights_gb:.1f} GB",
-            f"~{est:g} GB", f"[{colour[verdict]}]{verdict}[/]", rec.note,
+            name, f"{rec.params_b:g}B", f"{rec.weights_gb:.1f} GB",
+            f"~{est:g} GB", f"[{colour[verdict]}]{verdict}[/]",
         )  # fmt: skip
     console.print(table)
     if not all_:
@@ -277,6 +279,93 @@ def fuse(
             console.print("[red]--ollama needs --gguf <path>[/]")
             raise typer.Exit(1)
         write_ollama_modelfile(gguf, system=system)
+
+
+@app.command()
+def eval(  # noqa: A001 - typer command name
+    path: Annotated[
+        str, typer.Argument(help="Adapter dir from `mlxtune train`, fused dir, or Hub id")
+    ],
+    data: Annotated[
+        str | None,
+        typer.Option(
+            "--data", "-d", help="Dataset path or Hub id (default: the run's mlxtune.yaml data)"
+        ),
+    ] = None,
+    config: Annotated[
+        Path | None, typer.Option("--config", "-c", help="Run config to take data settings from")
+    ] = None,
+    overrides: SetOpt = None,
+    compare_base: Annotated[
+        bool,
+        typer.Option("--compare-base/--no-compare-base", help="Also score the untuned base model"),
+    ] = True,
+    samples: Annotated[int, typer.Option(help="Sample generations to show")] = 3,
+    max_examples: Annotated[int, typer.Option(help="Cap on examples scored")] = 100,
+    max_tokens: Annotated[int, typer.Option(help="Tokens per sample generation")] = 128,
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Where to write eval.json (default: <path>/eval.json)"),
+    ] = None,
+) -> None:
+    """Held-out loss / perplexity and sample generations, tuned vs base."""
+    from .data import DataError
+    from .eval import print_result, run_eval, save_result
+    from .hardware import detect
+
+    run_yaml = Path(path) / "mlxtune.yaml"
+    if config is None and data is None and run_yaml.exists():
+        config = run_yaml
+    if config is None and data is None:
+        raise typer.BadParameter(
+            "Pass --data, or --config, or a run directory containing mlxtune.yaml."
+        )
+    cfg = _load_config(
+        config, "unused" if config is None else None, data, None, overrides
+    ).resolved(detect())
+    try:
+        result = run_eval(
+            path,
+            cfg.data,
+            max_seq_length=int(cfg.train.max_seq_length),
+            mask_prompt=cfg.train.mask_prompt,
+            compare_base=compare_base,
+            n_samples=samples,
+            max_examples=max_examples,
+            max_tokens=max_tokens,
+        )
+    except DataError as e:
+        console.print(f"[red]data error:[/] {e}")
+        raise typer.Exit(1) from None
+    print_result(result)
+    out = output or (Path(path) / "eval.json" if Path(path).is_dir() else Path("eval.json"))
+    save_result(result, out)
+    console.print(f"[dim]written to {out}[/]")
+
+
+@app.command()
+def export(
+    model_dir: Annotated[
+        str, typer.Argument(help="Fused model dir from `mlxtune fuse --dequantize`")
+    ],
+    output: Annotated[str | None, typer.Option("--output", "-o", help="Output .gguf path")] = None,
+    quant: Annotated[str, typer.Option(help="f16 | bf16 | q8_0 | f32")] = "q8_0",
+    llama_cpp: Annotated[str | None, typer.Option(help="Path to a llama.cpp checkout")] = None,
+    ollama: Annotated[
+        bool, typer.Option("--ollama", help="Also write an Ollama Modelfile")
+    ] = False,
+    system: Annotated[str | None, typer.Option(help="System prompt for the Modelfile")] = None,
+) -> None:
+    """Export a dequantized fused model to GGUF via llama.cpp (any architecture llama.cpp supports)."""
+    from .inference import to_gguf, write_ollama_modelfile
+
+    try:
+        gguf = to_gguf(model_dir, output=output, quant=quant, llama_cpp=llama_cpp)
+    except (FileNotFoundError, RuntimeError) as e:
+        console.print(f"[red]{e}[/]")
+        raise typer.Exit(1) from None
+    if ollama:
+        write_ollama_modelfile(str(gguf), system=system)
 
 
 @app.command()

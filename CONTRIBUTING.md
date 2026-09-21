@@ -47,10 +47,10 @@ The memory estimator (`hardware.estimate_train_gb`) is calibrated on one machine
 
 ## Roadmap (help wanted)
 
-- [ ] `mlxtune eval` — before/after perplexity and sample generations
+- [x] `mlxtune eval` — held-out loss / perplexity + sample generations, tuned vs base
 - [ ] Auto-tune: try a few `(batch_size, max_seq_length)` combos for 5 iters each and pick the largest that fits
 - [ ] Preference tuning (DPO/ORPO) as mlx-lm grows support
-- [ ] GGUF export for non-llama architectures via llama.cpp's converter
+- [x] GGUF export for non-llama architectures via llama.cpp's converter (`mlxtune export`)
 
 ## Style
 

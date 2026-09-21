@@ -71,21 +71,27 @@ class ModelRec:
     note: str = ""
 
 
-# Curated 4-bit models from mlx-community that fine-tune well. Sizes verified against the Hub.
+# Curated 4-bit text models from mlx-community. weights_gb and vocab_k were read from each repo's
+# safetensors sizes and config.json on 2026-09-21. Multimodal repos (gemma-3-4b+) are left out.
 MODELS: list[ModelRec] = [
     ModelRec(
         "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
         0.5,
         0.28,
         152,
-        "fastest; great for testing a pipeline",
+        "fastest; good for pipeline tests",
     ),
     ModelRec("mlx-community/Qwen3-0.6B-4bit", 0.6, 0.34, 152, "thinking-mode model"),
     ModelRec("mlx-community/Llama-3.2-1B-Instruct-4bit", 1.2, 0.70, 128),
     ModelRec(
+        "mlx-community/gemma-3-1b-it-4bit", 1.0, 0.73, 262, "262k vocab: trains like a 3B"
+    ),
+    ModelRec(
         "mlx-community/Qwen2.5-1.5B-Instruct-4bit", 1.5, 0.87, 152, "sweet spot for 8 GB Macs"
     ),
+    ModelRec("mlx-community/Qwen2.5-Coder-1.5B-Instruct-4bit", 1.5, 0.87, 152, "code"),
     ModelRec("mlx-community/Qwen3-1.7B-4bit", 1.7, 0.97, 152),
+    ModelRec("mlx-community/gemma-2-2b-it-4bit", 2.6, 1.47, 256),
     ModelRec("mlx-community/Llama-3.2-3B-Instruct-4bit", 3.2, 1.81, 128),
     ModelRec("mlx-community/Qwen2.5-3B-Instruct-4bit", 3.1, 1.74, 152),
     ModelRec(
@@ -93,11 +99,21 @@ MODELS: list[ModelRec] = [
         3.8,
         2.15,
         32,
-        "small vocab = low activation memory",
+        "32k vocab: low activation memory",
+    ),
+    ModelRec("mlx-community/Phi-4-mini-instruct-4bit", 3.8, 2.16, 200),
+    ModelRec(
+        "mlx-community/Mistral-7B-Instruct-v0.3-4bit",
+        7.2,
+        4.08,
+        33,
+        "32k vocab: cheapest 7B to train",
     ),
     ModelRec("mlx-community/Qwen2.5-7B-Instruct-4bit", 7.6, 4.28, 152, "sweet spot for 16 GB Macs"),
+    ModelRec("mlx-community/Qwen2.5-Coder-7B-Instruct-4bit", 7.6, 4.28, 152, "code"),
     ModelRec("mlx-community/Meta-Llama-3.1-8B-Instruct-4bit", 8.0, 4.52, 128),
     ModelRec("mlx-community/Qwen3-8B-4bit", 8.2, 4.61, 152),
+    ModelRec("mlx-community/Mistral-Nemo-Instruct-2407-4bit", 12.2, 6.89, 131),
     ModelRec("mlx-community/Qwen2.5-14B-Instruct-4bit", 14.8, 8.31, 152, "32 GB Macs"),
     ModelRec("mlx-community/Qwen2.5-32B-Instruct-4bit", 32.8, 18.43, 152, "64 GB Macs"),
     ModelRec("mlx-community/Llama-3.3-70B-Instruct-4bit", 70.6, 39.69, 128, "96 GB+ Macs"),
