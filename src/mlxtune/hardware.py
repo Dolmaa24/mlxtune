@@ -83,9 +83,7 @@ MODELS: list[ModelRec] = [
     ),
     ModelRec("mlx-community/Qwen3-0.6B-4bit", 0.6, 0.34, 152, "thinking-mode model"),
     ModelRec("mlx-community/Llama-3.2-1B-Instruct-4bit", 1.2, 0.70, 128),
-    ModelRec(
-        "mlx-community/gemma-3-1b-it-4bit", 1.0, 0.73, 262, "262k vocab: trains like a 3B"
-    ),
+    ModelRec("mlx-community/gemma-3-1b-it-4bit", 1.0, 0.73, 262, "262k vocab: trains like a 3B"),
     ModelRec(
         "mlx-community/Qwen2.5-1.5B-Instruct-4bit", 1.5, 0.87, 152, "sweet spot for 8 GB Macs"
     ),
