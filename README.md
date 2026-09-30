@@ -22,10 +22,17 @@ mlx-lm already ships a capable LoRA trainer. What it doesn't do is tell you *wha
 - **One path to a usable model** — `train` → `eval` → `chat` → `fuse` → `export` (GGUF for any llama.cpp-supported architecture, plus an Ollama Modelfile).
 - **`mlxtune eval`** answers "did it help?" — the same validation loss mlx-lm trains against, tuned vs base, with sample generations side by side.
 - **Reproducible** — every run directory gets the resolved config, metrics with peak memory and throughput, and a README.
+  It also holds `data/train.jsonl` and `data/valid.jsonl`, the exact converted split the run used — handy for `resume`, but it means **sharing or uploading an adapter directory shares your training data**. Delete `data/` first if that matters.
 
 Measured on an M2 with 8 GB: Qwen2.5-0.5B-4bit trains at ~12 it/s with 0.5 GB peak on short examples; Qwen2.5-1.5B-4bit on 300 rows of `yahma/alpaca-cleaned` (up to 645 tokens) ran at 1.8 it/s with **2.1 GB peak**, val loss 1.31 → 1.08, held-out perplexity 3.70 → 2.93 vs base. 3B fits with the same settings.
 
 ## Install
+
+> **Not on PyPI yet.** `pip install mlxtune` starts working when v0.1.0 is published. Until then install from GitHub:
+> ```bash
+> pip install "mlxtune @ git+https://github.com/Dolmaa24/mlxtune"
+> ```
+
 
 Apple Silicon Mac, macOS 13.5+, Python 3.10+.
 
@@ -121,6 +128,9 @@ data:
   max_samples: null
   system_prompt: null
   shuffle_seed: 42
+  text_field: text              # column names, when auto-detection can't find them
+  prompt_field: prompt
+  completion_field: completion
 
 lora:
   type: lora                    # lora | dora | full

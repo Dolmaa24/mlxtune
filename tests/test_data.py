@@ -133,3 +133,8 @@ def test_prepare_drops_bad_rows(tmp_path):
     _write_jsonl(src, [{"instruction": "a", "output": "b"}, {"instruction": "c", "output": ""}])
     p = prepare(DataConfig(path=str(src), eval_fraction=0), tmp_path / "work")
     assert p.n_train == 1 and p.dropped == 1
+
+
+def test_missing_local_file_says_so_not_a_hub_error():
+    with pytest.raises(DataError, match="No such file"):
+        load_rows("data/train.jsonl")

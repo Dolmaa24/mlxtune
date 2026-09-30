@@ -6,6 +6,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); versions follow 
 
 First release.
 
+Pre-release polish (30 Sep 2026): verified from a fresh clone — clean install, full test suite, every documented
+command, the built wheel outside its source tree, and the whole quickstart end to end. Fixed along the way: a missing
+local data file reported a Hub error instead of "no such file"; the README config reference was missing a few real keys.
+
 - `mlxtune check / models / init / validate / train / eval / chat / fuse / export / info`.
 - RAM-tier defaults (`auto` batch size, sequence length, LoRA layers, gradient checkpointing) resolved at train time.
 - Peak-memory estimator calibrated on measured runs (M2, 8 GB); `mlxtune models` shows which curated 4-bit models fit.

@@ -19,6 +19,8 @@ from typing import Any
 
 from .config import DataConfig
 
+SUPPORTED_EXTENSIONS = {".jsonl", ".json", ".csv", ".txt"}
+
 
 class DataError(ValueError):
     """User-facing dataset problem."""
@@ -72,20 +74,25 @@ def load_rows(path: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]] | N
         if train_f.exists():
             valid_f = p / "valid.jsonl"
             return _read_file(train_f), (_read_file(valid_f) if valid_f.exists() else None)
-        files = sorted(
-            f for f in p.iterdir() if f.suffix.lower() in {".jsonl", ".json", ".csv", ".txt"}
-        )
+        files = sorted(f for f in p.iterdir() if f.suffix.lower() in SUPPORTED_EXTENSIONS)
         if not files:
             raise DataError(f"No data files in {p}")
         rows: list[dict[str, Any]] = []
         for f in files:
             rows.extend(_read_file(f))
         return rows, None
+    if p.suffix.lower() in SUPPORTED_EXTENSIONS:
+        # It names a data file, so it was meant to be local: don't send the user after a Hub extra.
+        raise DataError(
+            f"No such file: {p}\n"
+            f"  (a data.path ending in {p.suffix} is treated as a local file, not a Hub dataset id)"
+        )
     try:
         from datasets import load_dataset
     except ImportError as e:
         raise DataError(
-            f"{path!r} is not a local file. To load Hub datasets by id: pip install 'mlxtune[hub]'"
+            f"{path!r} is not a local file or directory. To load a Hub dataset by id: "
+            "pip install 'mlxtune[hub]'"
         ) from e
     try:
         ds = load_dataset(path, split="train")
