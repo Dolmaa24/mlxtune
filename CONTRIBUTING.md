@@ -55,3 +55,14 @@ The memory estimator (`hardware.estimate_train_gb`) is calibrated on one machine
 ## Style
 
 Python 3.10+, type hints, `ruff` clean. Errors users can hit should say what to change. Heavy imports (`mlx_lm`) stay inside functions so `mlxtuner --help` is instant. Don't add a dependency for something 20 lines can do.
+
+## Releasing
+
+Publishing uses PyPI Trusted Publishing (OIDC) from `.github/workflows/release.yml` — there is no
+API token anywhere. To cut a release:
+
+1. Bump `version` in `pyproject.toml` and add a dated section to `CHANGELOG.md`.
+2. `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin main --tags`
+3. The Release workflow builds, runs `twine check`, and uploads to PyPI.
+
+`workflow_dispatch` also runs it manually from the Actions tab.
