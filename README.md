@@ -28,12 +28,6 @@ Measured on an M2 with 8 GB: Qwen2.5-0.5B-4bit trains at ~12 it/s with 0.5 GB pe
 
 ## Install
 
-> **Not on PyPI yet.** `pip install mlxtune` starts working when v0.1.0 is published. Until then install from GitHub:
-> ```bash
-> pip install "mlxtune @ git+https://github.com/Dolmaa24/mlxtune"
-> ```
-
-
 Apple Silicon Mac, macOS 13.5+, Python 3.10+.
 
 ```bash
