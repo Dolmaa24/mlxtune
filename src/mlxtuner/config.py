@@ -138,10 +138,10 @@ def apply_overrides(raw: dict[str, Any], overrides: list[str]) -> dict[str, Any]
 
 
 EXAMPLE_CONFIG = """\
-# mlxtune run config. 'auto' values are chosen from your Mac's RAM when training starts.
-# Override anything from the CLI:  mlxtune train config.yaml --set train.lr=1e-4
+# mlxtuner run config. 'auto' values are chosen from your Mac's RAM when training starts.
+# Override anything from the CLI:  mlxtuner train config.yaml --set train.lr=1e-4
 
-model: mlx-community/Qwen2.5-1.5B-Instruct-4bit   # see `mlxtune models` for what fits your Mac
+model: mlx-community/Qwen2.5-1.5B-Instruct-4bit   # see `mlxtuner models` for what fits your Mac
 
 data:
   path: data/train.jsonl        # .jsonl/.json/.csv, a dir with train/valid.jsonl, or a Hub dataset id

@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from mlxtune.config import DataConfig
-from mlxtune.data import DataError, convert_row, detect_format, load_rows, prepare, to_messages
+from mlxtuner.config import DataConfig
+from mlxtuner.data import DataError, convert_row, detect_format, load_rows, prepare, to_messages
 
 
 def _cfg(**kw):

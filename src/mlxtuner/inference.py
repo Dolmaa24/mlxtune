@@ -140,7 +140,7 @@ def find_llama_cpp_converter(explicit: str | None = None) -> tuple[Path, str]:
 
     Prefers a ``.venv`` inside the llama.cpp checkout if one exists (some people install the
     converter's pinned requirements there); otherwise the current interpreter, which works as
-    long as ``sentencepiece`` and ``protobuf<5`` are installed (``pip install 'mlxtune[gguf]'``).
+    long as ``sentencepiece`` and ``protobuf<5`` are installed (``pip install 'mlxtuner[gguf]'``).
     """
     import os
 
@@ -161,7 +161,7 @@ def find_llama_cpp_converter(explicit: str | None = None) -> tuple[Path, str]:
     raise FileNotFoundError(
         "Could not find llama.cpp's convert_hf_to_gguf.py. Either:\n"
         "  git clone --depth 1 https://github.com/ggml-org/llama.cpp ~/llama.cpp\n"
-        "  pip install 'mlxtune[gguf]'\n"
+        "  pip install 'mlxtuner[gguf]'\n"
         "or pass --llama-cpp /path/to/llama.cpp, or set LLAMA_CPP_DIR."
     )
 
@@ -172,7 +172,7 @@ def to_gguf(
     """Convert a *dequantized* fused model directory to GGUF with llama.cpp's converter.
 
     Works for every architecture llama.cpp knows (Qwen, Phi, Gemma, Llama, ...). The directory
-    must come from ``mlxtune fuse --dequantize``: fused 4-bit weights are in MLX's own
+    must come from ``mlxtuner fuse --dequantize``: fused 4-bit weights are in MLX's own
     quantised layout, which the converter cannot read.
     """
     converter, python = find_llama_cpp_converter(llama_cpp)
@@ -180,7 +180,7 @@ def to_gguf(
     cfg = json.loads((src / "config.json").read_text())
     if "quantization" in cfg or "quantization_config" in cfg:
         raise RuntimeError(
-            f"{src} holds MLX-quantised weights. Re-run:  mlxtune fuse <adapter> --output {src} --dequantize"
+            f"{src} holds MLX-quantised weights. Re-run:  mlxtuner fuse <adapter> --output {src} --dequantize"
         )
     out = Path(output) if output else src / f"{src.name}-{quant}.gguf"
     cmd = [python, str(converter), str(src), "--outfile", str(out), "--outtype", quant]

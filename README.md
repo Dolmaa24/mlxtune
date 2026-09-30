@@ -1,26 +1,26 @@
-# mlxtune
+# mlxtuner
 
 **Fine-tune LLMs on your Mac with one command.** Built on [MLX](https://github.com/ml-explore/mlx) and [mlx-lm](https://github.com/ml-explore/mlx-lm), with defaults that actually fit in 8 GB.
 
 ```bash
-pip install mlxtune
-mlxtune train --model mlx-community/Qwen2.5-1.5B-Instruct-4bit --data my_data.jsonl
-mlxtune chat adapters/run
+pip install mlxtuner
+mlxtuner train --model mlx-community/Qwen2.5-1.5B-Instruct-4bit --data my_data.jsonl
+mlxtuner chat adapters/run
 ```
 
-[![CI](https://github.com/Dolmaa24/mlxtune/actions/workflows/ci.yml/badge.svg)](https://github.com/Dolmaa24/mlxtune/actions)
+[![CI](https://github.com/Dolmaa24/mlxtuner/actions/workflows/ci.yml/badge.svg)](https://github.com/Dolmaa24/mlxtuner/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ## Why
 
-mlx-lm already ships a capable LoRA trainer. What it doesn't do is tell you *what will fit on your Mac*, accept the dataset you already have, or get you from "adapter trained" to "model I can talk to" without reading three READMEs. mlxtune fills that gap:
+mlx-lm already ships a capable LoRA trainer. What it doesn't do is tell you *what will fit on your Mac*, accept the dataset you already have, or get you from "adapter trained" to "model I can talk to" without reading three READMEs. mlxtuner fills that gap:
 
 - **Memory-aware defaults.** `batch_size`, `max_seq_length`, `num_layers` and gradient checkpointing default to `auto` and resolve from your RAM. Before training starts you get an estimated peak (calibrated on real runs), and after it finishes you get the measured one.
-- **`mlxtune models`** — a curated list of 4-bit models with a yes / tight / no verdict for *this* machine.
+- **`mlxtuner models`** — a curated list of 4-bit models with a yes / tight / no verdict for *this* machine.
 - **Any common dataset format** — `messages`, alpaca, ShareGPT, prompt/completion, plain text; from `.jsonl` / `.json` / `.csv` / `.txt`, an mlx-lm style directory, or a Hub dataset id. Converted to what mlx-lm expects, with bad rows dropped and counted rather than crashing.
-- **`mlxtune validate`** — see the exact text the model will train on and how long it is, before you spend the time.
+- **`mlxtuner validate`** — see the exact text the model will train on and how long it is, before you spend the time.
 - **One path to a usable model** — `train` → `eval` → `chat` → `fuse` → `export` (GGUF for any llama.cpp-supported architecture, plus an Ollama Modelfile).
-- **`mlxtune eval`** answers "did it help?" — the same validation loss mlx-lm trains against, tuned vs base, with sample generations side by side.
+- **`mlxtuner eval`** answers "did it help?" — the same validation loss mlx-lm trains against, tuned vs base, with sample generations side by side.
 - **Reproducible** — every run directory gets the resolved config, metrics with peak memory and throughput, and a README.
   It also holds `data/train.jsonl` and `data/valid.jsonl`, the exact converted split the run used — handy for `resume`, but it means **sharing or uploading an adapter directory shares your training data**. Delete `data/` first if that matters.
 
@@ -31,40 +31,40 @@ Measured on an M2 with 8 GB: Qwen2.5-0.5B-4bit trains at ~12 it/s with 0.5 GB pe
 Apple Silicon Mac, macOS 13.5+, Python 3.10+.
 
 ```bash
-pip install mlxtune              # or: uv pip install mlxtune
-pip install "mlxtune[hub]"       # + load datasets from the Hugging Face Hub by id
+pip install mlxtuner              # or: uv pip install mlxtuner
+pip install "mlxtuner[hub]"       # + load datasets from the Hugging Face Hub by id
 ```
 
 From source:
 
 ```bash
-git clone https://github.com/Dolmaa24/mlxtune && cd mlxtune
+git clone https://github.com/Dolmaa24/mlxtuner && cd mlxtuner
 pip install -e ".[dev]"
 ```
 
 ## Quickstart
 
 ```bash
-mlxtune check                 # your chip, RAM, and the defaults mlxtune will use
-mlxtune models                # which models fit, with estimated peak memory
+mlxtuner check                 # your chip, RAM, and the defaults mlxtuner will use
+mlxtuner models                # which models fit, with estimated peak memory
 
 # check your data: format detection, token stats, one rendered example
-mlxtune validate --data examples/pirate.jsonl
+mlxtuner validate --data examples/pirate.jsonl
 
 # train (adapters land in adapters/pirate; the tiny example takes ~30 s of compute)
-mlxtune train --model mlx-community/Qwen2.5-0.5B-Instruct-4bit --data examples/pirate.jsonl \
+mlxtuner train --model mlx-community/Qwen2.5-0.5B-Instruct-4bit --data examples/pirate.jsonl \
     --output adapters/pirate --set train.epochs=3 --set train.lr=1e-4
 
-mlxtune eval adapters/pirate                       # held-out loss + samples, tuned vs base
-mlxtune chat adapters/pirate                       # talk to it
-mlxtune fuse adapters/pirate --output pirate-model # standalone MLX model
+mlxtuner eval adapters/pirate                       # held-out loss + samples, tuned vs base
+mlxtuner chat adapters/pirate                       # talk to it
+mlxtuner fuse adapters/pirate --output pirate-model # standalone MLX model
 ```
 
 Prefer a config file for anything you'll run twice:
 
 ```bash
-mlxtune init config.yaml
-mlxtune train config.yaml --set lora.rank=16
+mlxtuner init config.yaml
+mlxtuner train config.yaml --set lora.rank=16
 ```
 
 Ready-made configs in [`configs/`](configs/):
@@ -78,7 +78,7 @@ Ready-made configs in [`configs/`](configs/):
 
 ## What fits?
 
-`mlxtune models` prints this for your machine. Estimates use the tier's default settings and are calibrated against measured runs (±30 % for models much larger than the reference):
+`mlxtuner models` prints this for your machine. Estimates use the tier's default settings and are calibrated against measured runs (±30 % for models much larger than the reference):
 
 | RAM | defaults (batch × seq, layers) | comfortable | tight |
 |---|---|---|---|
@@ -159,43 +159,43 @@ Everything is overridable with `--set section.key=value`; `--model`, `--data`, `
 
 | command | what it does |
 |---|---|
-| `mlxtune check` | chip, RAM, tier and the auto defaults |
-| `mlxtune models [--all]` | curated models with fit verdicts and memory estimates |
-| `mlxtune init [path]` | commented starter config |
-| `mlxtune validate` | convert the dataset, show drop reasons, token stats, rendered example |
-| `mlxtune train` | train; `--dry-run` converts data and prints the plan only |
-| `mlxtune chat <path>` | interactive chat with an adapter dir, fused dir, or Hub id |
-| `mlxtune eval <path>` | held-out loss / perplexity + sample generations, tuned vs base; data taken from the run's `mlxtune.yaml` unless `--data` is given |
-| `mlxtune fuse <adapter>` | merge into a standalone model; `--dequantize` for export; `--gguf out.gguf` for llama-family |
-| `mlxtune export <fused>` | GGUF via llama.cpp's converter (any architecture it supports) + `--ollama` Modelfile |
-| `mlxtune info <run dir>` | metrics from a finished run |
+| `mlxtuner check` | chip, RAM, tier and the auto defaults |
+| `mlxtuner models [--all]` | curated models with fit verdicts and memory estimates |
+| `mlxtuner init [path]` | commented starter config |
+| `mlxtuner validate` | convert the dataset, show drop reasons, token stats, rendered example |
+| `mlxtuner train` | train; `--dry-run` converts data and prints the plan only |
+| `mlxtuner chat <path>` | interactive chat with an adapter dir, fused dir, or Hub id |
+| `mlxtuner eval <path>` | held-out loss / perplexity + sample generations, tuned vs base; data taken from the run's `mlxtuner.yaml` unless `--data` is given |
+| `mlxtuner fuse <adapter>` | merge into a standalone model; `--dequantize` for export; `--gguf out.gguf` for llama-family |
+| `mlxtuner export <fused>` | GGUF via llama.cpp's converter (any architecture it supports) + `--ollama` Modelfile |
+| `mlxtuner info <run dir>` | metrics from a finished run |
 
 ## Export to Ollama / llama.cpp
 
-Two routes. For any architecture llama.cpp supports (Qwen, Phi, Gemma, Llama, Mistral…), fuse in full precision and run llama.cpp's converter through `mlxtune export`:
+Two routes. For any architecture llama.cpp supports (Qwen, Phi, Gemma, Llama, Mistral…), fuse in full precision and run llama.cpp's converter through `mlxtuner export`:
 
 ```bash
 git clone --depth 1 https://github.com/ggml-org/llama.cpp ~/llama.cpp
-pip install "mlxtune[gguf]"                                   # torch + sentencepiece + protobuf, which the converter imports
-mlxtune fuse adapters/run --output fused --dequantize
-mlxtune export fused --quant q8_0 --ollama                    # finds ~/llama.cpp automatically (or --llama-cpp PATH)
+pip install "mlxtuner[gguf]"                                   # torch + sentencepiece + protobuf, which the converter imports
+mlxtuner fuse adapters/run --output fused --dequantize
+mlxtuner export fused --quant q8_0 --ollama                    # finds ~/llama.cpp automatically (or --llama-cpp PATH)
 ollama create my-model -f fused/Modelfile && ollama run my-model
 ```
 
-This route was verified end-to-end on an M2 with a Qwen2.5-0.5B adapter: the Ollama model answered in the fine-tuned style. `export` refuses a fused directory that still holds 4-bit MLX weights and tells you to re-fuse with `--dequantize`. Don't install llama.cpp's own pinned `requirements-convert_hf_to_gguf.txt` into the mlxtune environment; if you want their pinned versions, put them in `~/llama.cpp/.venv` and mlxtune will use that interpreter.
+This route was verified end-to-end on an M2 with a Qwen2.5-0.5B adapter: the Ollama model answered in the fine-tuned style. `export` refuses a fused directory that still holds 4-bit MLX weights and tells you to re-fuse with `--dequantize`. Don't install llama.cpp's own pinned `requirements-convert_hf_to_gguf.txt` into the mlxtuner environment; if you want their pinned versions, put them in `~/llama.cpp/.venv` and mlxtuner will use that interpreter.
 
 For `llama`, `mistral` and `mixtral` architectures only, mlx-lm can also write GGUF itself, with no llama.cpp checkout:
 
 ```bash
-mlxtune fuse adapters/run --output fused --gguf model.gguf --ollama
+mlxtuner fuse adapters/run --output fused --gguf model.gguf --ollama
 ```
 
 ## Python API
 
 ```python
-from mlxtune.config import RunConfig
-from mlxtune.train import run
-from mlxtune.inference import load_for_inference, stream_reply
+from mlxtuner.config import RunConfig
+from mlxtuner.train import run
+from mlxtuner.inference import load_for_inference, stream_reply
 
 out = run(RunConfig.from_dict({"model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit", "data": "data.jsonl"}))
 model, tok = load_for_inference(str(out))
@@ -210,7 +210,7 @@ print("".join(stream_reply(model, tok, [{"role": "user", "content": "hello"}])))
 
 **Can I use a non-mlx-community model?** Yes — mlx-lm converts Hugging Face models on load, but un-quantised weights use 4× the memory of 4-bit ones. Quantise first with `python -m mlx_lm convert --hf-path <repo> -q`.
 
-**Does this work on Intel Macs / Linux / Windows?** No; MLX is Apple Silicon only. For NVIDIA GPUs and Colab, see the sibling project [tunekit](../tunekit).
+**Does this work on Intel Macs / Linux / Windows?** No; MLX is Apple Silicon only. For NVIDIA GPUs and Colab, see the sibling project [tunekit](https://github.com/Dolmaa24/tunekit).
 
 ## Contributing
 

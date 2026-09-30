@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from mlxtune.config import RunConfig
-from mlxtune.train import run
+from mlxtuner.config import RunConfig
+from mlxtuner.train import run
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
 
@@ -32,10 +32,10 @@ def test_train_chat_fuse(tmp_path):
     )
     out = run(cfg)
     assert (out / "adapters.safetensors").exists()
-    meta = json.loads((out / "mlxtune.json").read_text())
+    meta = json.loads((out / "mlxtuner.json").read_text())
     assert meta["peak_memory_gb"] and meta["final_train_loss"] is not None
 
-    from mlxtune.inference import fuse, load_for_inference, stream_reply
+    from mlxtuner.inference import fuse, load_for_inference, stream_reply
 
     model, tok = load_for_inference(str(out))
     reply = "".join(
@@ -43,7 +43,7 @@ def test_train_chat_fuse(tmp_path):
     )
     assert isinstance(reply, str)
 
-    from mlxtune.eval import run_eval
+    from mlxtuner.eval import run_eval
 
     r = run_eval(
         str(out),

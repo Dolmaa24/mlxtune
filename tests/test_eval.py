@@ -1,4 +1,4 @@
-from mlxtune.eval import _prompt_messages, _reference
+from mlxtuner.eval import _prompt_messages, _reference
 
 
 def test_prompt_and_reference_messages():

@@ -1,4 +1,4 @@
-"""mlxtune command line interface."""
+"""mlxtuner command line interface."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from . import __version__
 from .config import EXAMPLE_CONFIG, RunConfig
 
 app = typer.Typer(
-    name="mlxtune",
+    name="mlxtuner",
     help="Fine-tune LLMs on Apple Silicon with one command.",
     no_args_is_help=True,
     rich_markup_mode="rich",
@@ -32,7 +32,7 @@ SetOpt = Annotated[
 
 def _version(value: bool) -> None:
     if value:
-        console.print(f"mlxtune {__version__}")
+        console.print(f"mlxtuner {__version__}")
         raise typer.Exit()
 
 
@@ -71,11 +71,11 @@ def _load_config(
 
 @app.command()
 def check() -> None:
-    """Show this Mac's chip and RAM, and the training defaults mlxtune will use for it."""
+    """Show this Mac's chip and RAM, and the training defaults mlxtuner will use for it."""
     from .hardware import TIER_DEFAULTS, detect
 
     m = detect()
-    console.print(f"mlxtune {__version__}")
+    console.print(f"mlxtuner {__version__}")
     console.print(f"chip: {m.chip}")
     console.print(f"ram:  {m.ram_gb:g} GB  -> tier {m.tier}")
     if not m.apple_silicon:
@@ -86,7 +86,7 @@ def check() -> None:
         f"defaults: batch_size={d.batch_size}  max_seq_length={d.max_seq_length}  "
         f"num_layers={d.num_layers}  grad_checkpoint={'on' if d.grad_checkpoint else 'off'}"
     )
-    console.print("see what fits:  mlxtune models")
+    console.print("see what fits:  mlxtuner models")
 
 
 @app.command()
@@ -149,7 +149,7 @@ def init(
         console.print(f"[red]{path} exists[/] (use --force to overwrite)")
         raise typer.Exit(1)
     path.write_text(EXAMPLE_CONFIG)
-    console.print(f"[green]wrote {path}[/]  next:  edit it, then  mlxtune train {path}")
+    console.print(f"[green]wrote {path}[/]  next:  edit it, then  mlxtuner train {path}")
 
 
 @app.command()
@@ -211,7 +211,7 @@ def validate(
 @app.command()
 def train(
     config: Annotated[
-        Path | None, typer.Argument(help="YAML run config (see `mlxtune init`)")
+        Path | None, typer.Argument(help="YAML run config (see `mlxtuner init`)")
     ] = None,
     model: Annotated[
         str | None, typer.Option("--model", "-m", help="Model id or local path")
@@ -234,7 +234,7 @@ def train(
 @app.command()
 def chat(
     path: Annotated[
-        str, typer.Argument(help="Adapter dir from `mlxtune train`, fused model dir, or Hub id")
+        str, typer.Argument(help="Adapter dir from `mlxtuner train`, fused model dir, or Hub id")
     ],
     system: Annotated[str | None, typer.Option("--system", help="System prompt")] = None,
     max_tokens: Annotated[int, typer.Option(help="Max tokens per reply")] = 512,
@@ -248,7 +248,7 @@ def chat(
 
 @app.command()
 def fuse(
-    adapter: Annotated[str, typer.Argument(help="Adapter dir from `mlxtune train`")],
+    adapter: Annotated[str, typer.Argument(help="Adapter dir from `mlxtuner train`")],
     output: Annotated[
         str, typer.Option("--output", "-o", help="Where to save the fused model")
     ] = "fused-model",
@@ -284,12 +284,12 @@ def fuse(
 @app.command()
 def eval(  # noqa: A001 - typer command name
     path: Annotated[
-        str, typer.Argument(help="Adapter dir from `mlxtune train`, fused dir, or Hub id")
+        str, typer.Argument(help="Adapter dir from `mlxtuner train`, fused dir, or Hub id")
     ],
     data: Annotated[
         str | None,
         typer.Option(
-            "--data", "-d", help="Dataset path or Hub id (default: the run's mlxtune.yaml data)"
+            "--data", "-d", help="Dataset path or Hub id (default: the run's mlxtuner.yaml data)"
         ),
     ] = None,
     config: Annotated[
@@ -313,12 +313,12 @@ def eval(  # noqa: A001 - typer command name
     from .eval import print_result, run_eval, save_result
     from .hardware import detect
 
-    run_yaml = Path(path) / "mlxtune.yaml"
+    run_yaml = Path(path) / "mlxtuner.yaml"
     if config is None and data is None and run_yaml.exists():
         config = run_yaml
     if config is None and data is None:
         raise typer.BadParameter(
-            "Pass --data, or --config, or a run directory containing mlxtune.yaml."
+            "Pass --data, or --config, or a run directory containing mlxtuner.yaml."
         )
     cfg = _load_config(
         config, "unused" if config is None else None, data, None, overrides
@@ -346,7 +346,7 @@ def eval(  # noqa: A001 - typer command name
 @app.command()
 def export(
     model_dir: Annotated[
-        str, typer.Argument(help="Fused model dir from `mlxtune fuse --dequantize`")
+        str, typer.Argument(help="Fused model dir from `mlxtuner fuse --dequantize`")
     ],
     output: Annotated[str | None, typer.Option("--output", "-o", help="Output .gguf path")] = None,
     quant: Annotated[str, typer.Option(help="f16 | bf16 | q8_0 | f32")] = "q8_0",
@@ -370,8 +370,8 @@ def export(
 
 @app.command()
 def info(path: Annotated[str, typer.Argument(help="A run output directory")]) -> None:
-    """Summarise a finished run (mlxtune.json)."""
-    meta_path = Path(path) / "mlxtune.json"
+    """Summarise a finished run (mlxtuner.json)."""
+    meta_path = Path(path) / "mlxtuner.json"
     if not meta_path.exists():
         console.print(f"[red]{meta_path} not found[/]")
         raise typer.Exit(1)

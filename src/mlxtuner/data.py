@@ -92,7 +92,7 @@ def load_rows(path: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]] | N
     except ImportError as e:
         raise DataError(
             f"{path!r} is not a local file or directory. To load a Hub dataset by id: "
-            "pip install 'mlxtune[hub]'"
+            "pip install 'mlxtuner[hub]'"
         ) from e
     try:
         ds = load_dataset(path, split="train")
@@ -116,7 +116,7 @@ def detect_format(row: dict[str, Any], cfg: DataConfig | None = None) -> str:
         return "sharegpt"
     if {"chosen", "rejected"} <= keys:
         raise DataError(
-            "This is a preference (DPO) dataset; mlxtune does supervised fine-tuning only."
+            "This is a preference (DPO) dataset; mlxtuner does supervised fine-tuning only."
         )
     pf = cfg.prompt_field if cfg else "prompt"
     cf = cfg.completion_field if cfg else "completion"

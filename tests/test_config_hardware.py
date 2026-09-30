@@ -2,8 +2,8 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from mlxtune.config import EXAMPLE_CONFIG, RunConfig, apply_overrides
-from mlxtune.hardware import MODELS, TIER_DEFAULTS, Machine, estimate_train_gb, fits
+from mlxtuner.config import EXAMPLE_CONFIG, RunConfig, apply_overrides
+from mlxtuner.hardware import MODELS, TIER_DEFAULTS, Machine, estimate_train_gb, fits
 
 
 def test_example_config_valid():

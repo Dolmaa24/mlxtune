@@ -20,7 +20,7 @@ console = Console()
 
 
 class MetricsCallback:
-    """Collects what mlx-lm reports so we can write it to mlxtune.json."""
+    """Collects what mlx-lm reports so we can write it to mlxtuner.json."""
 
     def __init__(self) -> None:
         self.train: list[dict[str, Any]] = []
@@ -89,9 +89,9 @@ def run(cfg: RunConfig, dry_run: bool = False, machine: Machine | None = None) -
     out = Path(cfg.train.output)
     out.mkdir(parents=True, exist_ok=True)
 
-    console.rule("[bold]mlxtune train")
+    console.rule("[bold]mlxtuner train")
     console.print(
-        f"[dim]mlxtune {__version__}[/]  {machine.chip}, {machine.ram_gb:g} GB (tier {machine.tier})"
+        f"[dim]mlxtuner {__version__}[/]  {machine.chip}, {machine.ram_gb:g} GB (tier {machine.tier})"
     )
 
     # -- data ----------------------------------------------------------------
@@ -127,9 +127,9 @@ def run(cfg: RunConfig, dry_run: bool = False, machine: Machine | None = None) -
         if verdict == "no":
             console.print(
                 "[red]This will probably swap or crash.[/] Lower train.max_seq_length, train.batch_size or "
-                "lora.num_layers, or pick a smaller model (`mlxtune models`)."
+                "lora.num_layers, or pick a smaller model (`mlxtuner models`)."
             )
-    cfg.to_yaml(out / "mlxtune.yaml")
+    cfg.to_yaml(out / "mlxtuner.yaml")
     if dry_run:
         console.print("[green]dry run OK[/]  (data converted, nothing trained)")
         return out
@@ -158,7 +158,7 @@ def run(cfg: RunConfig, dry_run: bool = False, machine: Machine | None = None) -
     last_train = metrics.train[-1] if metrics.train else {}
     last_val = metrics.val[-1] if metrics.val else {}
     meta = {
-        "mlxtune_version": __version__,
+        "mlxtuner_version": __version__,
         "model": cfg.model,
         "machine": {"chip": machine.chip, "ram_gb": machine.ram_gb},
         "kind": data.kind,
@@ -172,7 +172,7 @@ def run(cfg: RunConfig, dry_run: bool = False, machine: Machine | None = None) -
         "wall_time_s": round(time.time() - t0, 1),
         "history": {"train": metrics.train, "val": metrics.val},
     }
-    (out / "mlxtune.json").write_text(json.dumps(meta, indent=2, default=str))
+    (out / "mlxtuner.json").write_text(json.dumps(meta, indent=2, default=str))
     _write_readme(out, cfg, meta)
 
     tl, vl = meta["final_train_loss"], meta["final_val_loss"]
@@ -181,7 +181,7 @@ def run(cfg: RunConfig, dry_run: bool = False, machine: Machine | None = None) -
         + (f"  val_loss={vl:.3f}" if vl else "")
         + (f"  peak_mem={meta['peak_memory_gb']} GB" if meta["peak_memory_gb"] else "")
     )
-    console.print(f"adapter saved to [bold]{out}[/]   try it:  mlxtune chat {out}")
+    console.print(f"adapter saved to [bold]{out}[/]   try it:  mlxtuner chat {out}")
     return out
 
 
@@ -206,7 +206,7 @@ def _write_readme(out: Path, cfg: RunConfig, meta: dict[str, Any]) -> None:
     lines = [
         f"# LoRA adapter for `{cfg.model}`",
         "",
-        f"Trained with [mlxtune](https://github.com/Dolmaa24/mlxtune) {meta['mlxtune_version']} "
+        f"Trained with [mlxtuner](https://github.com/Dolmaa24/mlxtuner) {meta['mlxtuner_version']} "
         f"on {meta['machine']['chip']} ({meta['machine']['ram_gb']:g} GB).",
         "",
         "| | |",
@@ -223,10 +223,10 @@ def _write_readme(out: Path, cfg: RunConfig, meta: dict[str, Any]) -> None:
         "## Use",
         "",
         "```bash",
-        f"mlxtune chat {cfg.train.output}",
-        f"mlxtune fuse {cfg.train.output} --output fused-model   # standalone model",
+        f"mlxtuner chat {cfg.train.output}",
+        f"mlxtuner fuse {cfg.train.output} --output fused-model   # standalone model",
         "```",
         "",
-        "Re-run with `mlxtune train mlxtune.yaml`.",
+        "Re-run with `mlxtuner train mlxtuner.yaml`.",
     ]
     (out / "README.md").write_text("\n".join(x for x in lines if x is not None) + "\n")

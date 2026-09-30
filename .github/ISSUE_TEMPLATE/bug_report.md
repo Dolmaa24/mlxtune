@@ -6,9 +6,9 @@ labels: bug
 
 **Command / config**
 ```bash
-mlxtune train ...
+mlxtuner train ...
 ```
 
 **What happened**
 
-**Output of `mlxtune check`** and `pip show mlxtune mlx mlx-lm`
+**Output of `mlxtuner check`** and `pip show mlxtuner mlx mlx-lm`

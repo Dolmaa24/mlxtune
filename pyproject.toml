@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mlxtune"
+name = "mlxtuner"
 version = "0.1.0"
 description = "Fine-tune LLMs on Apple Silicon with one command. Memory-aware defaults for 8 GB Macs and up, built on MLX."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-authors = [{ name = "mlxtune contributors" }]
+authors = [{ name = "mlxtuner contributors" }]
 keywords = ["mlx", "apple-silicon", "fine-tuning", "lora", "llm", "mac"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -36,14 +36,14 @@ gguf = ["torch>=2.1", "sentencepiece>=0.1.98,<0.3", "protobuf>=4.21,<5"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
-mlxtune = "mlxtune.cli:app"
+mlxtuner = "mlxtuner.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/Dolmaa24/mlxtune"
-Issues = "https://github.com/Dolmaa24/mlxtune/issues"
+Homepage = "https://github.com/Dolmaa24/mlxtuner"
+Issues = "https://github.com/Dolmaa24/mlxtuner/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mlxtune"]
+packages = ["src/mlxtuner"]
 
 [tool.ruff]
 line-length = 100

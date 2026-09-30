@@ -1,11 +1,11 @@
-# Contributing to mlxtune
+# Contributing to mlxtuner
 
 The goal is that someone with a Mac and a dataset gets a working fine-tune with one command and no surprises. Every change should make that more true.
 
 ## Setup
 
 ```bash
-git clone https://github.com/Dolmaa24/mlxtune && cd mlxtune
+git clone https://github.com/Dolmaa24/mlxtuner && cd mlxtuner
 python -m venv .venv && source .venv/bin/activate      # or: uv venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
@@ -23,7 +23,7 @@ CI runs all of these on GitHub's M-series macOS runners.
 ## Layout
 
 ```
-src/mlxtune/
+src/mlxtuner/
   hardware.py   Mac detection, RAM tiers + defaults, curated model list, memory estimator
   config.py     pydantic schema, 'auto' resolution, --set overrides
   data.py       any format -> mlx-lm's train/valid.jsonl
@@ -37,7 +37,7 @@ tests/          unit tests + one integration test
 
 ## The most useful contribution: hardware reports
 
-The memory estimator (`hardware.estimate_train_gb`) is calibrated on one machine and one small model. Every measured run on a different Mac or model makes it better. Open a [hardware report issue](.github/ISSUE_TEMPLATE/hardware_report.md) with your `mlxtune check`, the model, settings, and the `peak_memory_gb` from `mlxtune info`. If you're comfortable with it, adjust the constants in `hardware.py` and add the measurement to `tests/test_config_hardware.py::test_estimator_tracks_measurements`.
+The memory estimator (`hardware.estimate_train_gb`) is calibrated on one machine and one small model. Every measured run on a different Mac or model makes it better. Open a [hardware report issue](.github/ISSUE_TEMPLATE/hardware_report.md) with your `mlxtuner check`, the model, settings, and the `peak_memory_gb` from `mlxtuner info`. If you're comfortable with it, adjust the constants in `hardware.py` and add the measurement to `tests/test_config_hardware.py::test_estimator_tracks_measurements`.
 
 ## Other good first contributions
 
@@ -47,11 +47,11 @@ The memory estimator (`hardware.estimate_train_gb`) is calibrated on one machine
 
 ## Roadmap (help wanted)
 
-- [x] `mlxtune eval` — held-out loss / perplexity + sample generations, tuned vs base
+- [x] `mlxtuner eval` — held-out loss / perplexity + sample generations, tuned vs base
 - [ ] Auto-tune: try a few `(batch_size, max_seq_length)` combos for 5 iters each and pick the largest that fits
 - [ ] Preference tuning (DPO/ORPO) as mlx-lm grows support
-- [x] GGUF export for non-llama architectures via llama.cpp's converter (`mlxtune export`)
+- [x] GGUF export for non-llama architectures via llama.cpp's converter (`mlxtuner export`)
 
 ## Style
 
-Python 3.10+, type hints, `ruff` clean. Errors users can hit should say what to change. Heavy imports (`mlx_lm`) stay inside functions so `mlxtune --help` is instant. Don't add a dependency for something 20 lines can do.
+Python 3.10+, type hints, `ruff` clean. Errors users can hit should say what to change. Heavy imports (`mlx_lm`) stay inside functions so `mlxtuner --help` is instant. Don't add a dependency for something 20 lines can do.
