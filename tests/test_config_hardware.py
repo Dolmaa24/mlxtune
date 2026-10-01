@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 import yaml
 from pydantic import ValidationError
@@ -100,3 +102,20 @@ def test_fits_thresholds():
     assert fits(m, 5.0) == "yes"
     assert fits(m, 12.0) == "tight"
     assert fits(m, 14.0) == "no"
+
+
+def test_version_is_single_sourced():
+    """pyproject must not carry its own version: hatch reads it from mlxtuner.__version__.
+
+    Two literals drift — a release once shipped metadata saying 0.1.1 while the CLI said 0.1.0.
+    """
+    import tomllib
+
+    raw = tomllib.loads((Path(__file__).resolve().parent.parent / "pyproject.toml").read_text())
+    assert "version" in raw["project"].get("dynamic", []), (
+        "pyproject should declare a dynamic version"
+    )
+    assert "version" not in raw["project"], (
+        "pyproject has a static version; it would drift from __version__"
+    )
+    assert raw["tool"]["hatch"]["version"]["path"] == "src/mlxtuner/__init__.py"

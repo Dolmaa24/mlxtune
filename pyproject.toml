@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mlxtuner"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Fine-tune LLMs on Apple Silicon with one command. Memory-aware defaults for 8 GB Macs and up, built on MLX."
 readme = "README.md"
 license = "Apache-2.0"
@@ -41,6 +41,10 @@ mlxtuner = "mlxtuner.cli:app"
 [project.urls]
 Homepage = "https://github.com/Dolmaa24/mlxtuner"
 Issues = "https://github.com/Dolmaa24/mlxtuner/issues"
+
+[tool.hatch.version]
+# Single source of truth: the package's __version__.
+path = "src/mlxtuner/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mlxtuner"]
